@@ -24,6 +24,7 @@ export default function MovieCard({ movie }: MovieCardProps) {
     checkLibraryStatus()
   }, [movie.id])
 
+  // Verifica se o filme está na biblioteca
   const checkLibraryStatus = async () => {
     try {
       const response = await fetch(`http://localhost:3001/library/${movie.id}/check`)

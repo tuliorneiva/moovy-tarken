@@ -1,5 +1,6 @@
 import * as FileSystem from 'expo-file-system';
 
+// Função para fazer upload do áudio para o backend
 export async function uploadAudioReview(movieId: string, localAudioUri: string, backendUrl: string) {
   const apiUrl = `${backendUrl}/library/${movieId}/audio`;
 

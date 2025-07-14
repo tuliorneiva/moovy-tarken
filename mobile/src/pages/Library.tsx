@@ -25,6 +25,7 @@ export default function Library() {
   const [movies, setMovies] = useState<LibraryMovie[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [playingId, setPlayingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchLibraryMovies();

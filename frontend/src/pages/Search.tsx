@@ -58,8 +58,8 @@ function useMovies() {
         setMovies(data)
         setLoading(false)
       })
-      .catch(() => {
-        setError('Não foi possível carregar os filmes.')
+      .catch((error) => {
+        setError('Não foi possível carregar os filmes. ' + error)
         setLoading(false)
       })
   }, [])
@@ -67,6 +67,7 @@ function useMovies() {
   return { movies, error, loading }
 }
 
+// Hook para a barra de pesquisa
 function useSearchResults() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
@@ -75,7 +76,7 @@ function useSearchResults() {
   const searchMovies = async (query: string) => {
     if (!query.trim()) {
       setSearchResults([])
-      return
+      return;
     }
 
     try {
@@ -126,7 +127,7 @@ export default function Search() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
 
-  // Debounce para evitar muitas requisições
+  // Debounce
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (searchQuery.trim()) {
@@ -135,7 +136,7 @@ export default function Search() {
       } else {
         setIsSearching(false)
       }
-    }, 500) // Aguarda 500ms após o usuário parar de digitar
+    }, 500)
 
     return () => clearTimeout(timeoutId)
   }, [searchQuery, searchMovies])
@@ -147,7 +148,7 @@ export default function Search() {
       const windowHeight = window.innerHeight
       const documentHeight = document.documentElement.scrollHeight
       
-      // Se chegou a 100px do final da página e ainda há mais filmes para mostrar
+      
       if (scrollTop + windowHeight >= documentHeight - 100 && visibleCount < movies.length) {
         setVisibleCount(prev => Math.min(prev + 8, movies.length))
       }
@@ -214,7 +215,7 @@ export default function Search() {
           )}
         </div>
         
-        {/* Resultados */}
+
         {isSearching ? (
           // Resultados da pesquisa
           <div>
@@ -234,7 +235,7 @@ export default function Search() {
             )}
           </div>
         ) : (
-          // Lista completa de filmes
+          // Lista completa de filmes sem pesquisa
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {displayMovies.slice(0, visibleCount).map((movie) => (
               <MovieCard key={movie.id} movie={movie} />

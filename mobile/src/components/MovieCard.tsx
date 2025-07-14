@@ -128,7 +128,7 @@ export default function MovieCard({ movie }: MovieCardProps) {
         await FileSystem.moveAsync({ from: uri, to: audioFilePath });
         setAudioUri(audioFilePath);
   
-        // Faz o upload imediatamente usando audioFilePath
+        // Faz o upload IMEDIATAMENTE usando audioFilePath
         if (isInLibrary) {
           try {
             console.log("movie.id: ", movie.id);
@@ -199,7 +199,7 @@ export default function MovieCard({ movie }: MovieCardProps) {
     return `${min}:${sec}`;
   };
 
-
+  // Verifica se o filme está na biblioteca no backend
   const checkLibraryStatus = async () => {
     try {
       const response = await fetch(API_ENDPOINTS.libraryCheck(movie.id));
@@ -210,6 +210,7 @@ export default function MovieCard({ movie }: MovieCardProps) {
     }
   };
 
+  // Adiciona o filme à biblioteca no backend
   const handleAddToLibrary = async () => {
     setIsLoading(true);
     try {
@@ -237,6 +238,7 @@ export default function MovieCard({ movie }: MovieCardProps) {
     }
   };
 
+  // Remove o filme da biblioteca no backend
   const handleRemoveFromLibrary = async () => {
     setIsLoading(true);
     try {
@@ -251,6 +253,7 @@ export default function MovieCard({ movie }: MovieCardProps) {
     }
   };
 
+  // Alterna a biblioteca
   const toggleLibrary = () => {
     if (isInLibrary) {
       Alert.alert(

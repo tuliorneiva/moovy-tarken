@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import MovieCard from '../components/MovieCard';
 
 type LibraryMovie = {
@@ -9,6 +9,13 @@ type LibraryMovie = {
   rating: string;
   createdAt: string;
 }
+
+type AudioReviewButtonProps = {
+  audioUrl: string;
+  isPlaying: boolean;
+  onPlay: () => void;
+  onPause: () => void;
+};
 
 function useLibraryMovies() {
   const [movies, setMovies] = useState<LibraryMovie[]>([]);
@@ -45,9 +52,46 @@ function useLibraryMovies() {
   return { movies, error, loading };
 }
 
+const AudioReviewButton: React.FC<AudioReviewButtonProps> = ({ audioUrl, isPlaying, onPlay, onPause }) => {
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.play();
+      } else {
+        audioRef.current.pause();
+      }
+    }
+  }, [isPlaying]);
+
+  return (
+    <div style={{ marginTop: 8, textAlign: 'center' }}>
+      <audio ref={audioRef} src={audioUrl} onEnded={onPause} style={{ display: 'none' }} />
+      {isPlaying ? (
+        <button
+          onClick={onPause}
+          className="bg-red-500 text-white px-3 py-1 rounded"
+        >
+          Pause
+        </button>
+      ) : (
+        <button
+          onClick={onPlay}
+          className="bg-blue-500 text-white px-3 py-1 rounded"
+        >
+          Play
+        </button>
+      )}
+    </div>
+  );
+};
+
 export default function Library() {
+  const [audioExists, setAudioExists] = useState<{ [movieId: string]: boolean }>({});
   const { movies, error, loading } = useLibraryMovies();
   const [visibleCount, setVisibleCount] = useState(8);
+  const [playingId, setPlayingId] = useState<string | null>(null);
 
   // Função para detectar quando o usuário chegou próximo ao final da página
   useEffect(() => {
@@ -65,6 +109,27 @@ export default function Library() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [visibleCount, movies.length]);
+
+  useEffect(() => {
+    const checkAudios = async () => {
+      const checks = await Promise.all(
+        movies.map(async (movie) => {
+          const audioUrl = `http://localhost:3001/library/${movie.movieId}/audio`;
+          try {
+            const res = await fetch(audioUrl, { method: 'HEAD' });
+            return [movie.movieId, res.ok];
+          } catch {
+            return [movie.movieId, false];
+          }
+        })
+      );
+      setAudioExists(Object.fromEntries(checks));
+    };
+
+    if (movies.length > 0) {
+      checkAudios();
+    }
+  }, [movies]);
 
   if (loading) {
     return <div className="text-center text-gray-500 mt-10">Carregando filmes...</div>;
@@ -91,19 +156,32 @@ export default function Library() {
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {movies.slice(0, visibleCount).map((movie) => (
-                <MovieCard
-                  key={movie.id}
-                  movie={{
-                    id: movie.movieId,
-                    title: movie.title,
-                    year: new Date(movie.createdAt).getFullYear(),
-                    image: movie.image,
-                    rating: movie.rating,
-                    type: 'movie' 
-                  }}
-                />
-              ))}
+              {movies.slice(0, visibleCount).map((movie) => {
+                const audioUrl = `http://localhost:3001/library/${movie.movieId}/audio`;
+
+                return (
+                  <div key={movie.id} className="relative">
+                    <MovieCard
+                      movie={{
+                        id: movie.movieId,
+                        title: movie.title,
+                        year: new Date(movie.createdAt).getFullYear(),
+                        image: movie.image,
+                        rating: movie.rating,
+                        type: 'movie'
+                      }}
+                    />
+                    {audioExists[movie.movieId] && (
+                      <AudioReviewButton
+                        audioUrl={audioUrl}
+                        isPlaying={playingId === movie.movieId}
+                        onPlay={() => setPlayingId(movie.movieId)}
+                        onPause={() => setPlayingId(null)}
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
             
             {/* Indicador de carregamento */}
